@@ -1,10 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+{% extends 'base.html' %}
+{% block content %}
+<div class="message-box">
+    <h2>Chat Room: {{room}}</h2>
+    <div class="messages" id="messages"></div>
+    <div class="inputs">
+        <input type="text" style="height: 50px;" placeholder="Message" name="message" id="message"/>
+        <button type="button" name="send" id="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+</div>
+{% endblock %}
