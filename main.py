@@ -56,5 +56,9 @@ def room():
 
     return render_template("room.html")
 
+@socketio.on("connect")
+def connect(auth):
+    pass
+
 if __name__ == "__main__":
     socketio.run(app, debug=True, allow_unsafe_werkzeug=True)
