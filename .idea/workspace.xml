@@ -4,9 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="dea46598-3b3b-4b5e-9225-41543d69a5ad" name="Changes" comment="read guide">
+    <list default="true" id="dea46598-3b3b-4b5e-9225-41543d69a5ad" name="Changes" comment="edit index js for host">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/index.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/home.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/home.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -136,7 +137,23 @@
       <option name="project" value="LOCAL" />
       <updated>1713605330303</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="edit style html code">
+      <option name="closed" value="true" />
+      <created>1713608530037</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1713608530037</updated>
+    </task>
+    <task id="LOCAL-00007" summary="edit index js for host">
+      <option name="closed" value="true" />
+      <created>1713642449629</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1713642449629</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -145,6 +162,8 @@
     <MESSAGE value="Add style.css, start create new route socketio.on, edit room html code" />
     <MESSAGE value="edit and add route in main py, create sending message, edit and add style" />
     <MESSAGE value="read guide" />
-    <option name="LAST_COMMIT_MESSAGE" value="read guide" />
+    <MESSAGE value="edit style html code" />
+    <MESSAGE value="edit index js for host" />
+    <option name="LAST_COMMIT_MESSAGE" value="edit index js for host" />
   </component>
 </project>

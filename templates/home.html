@@ -1,48 +1,48 @@
-{% extends 'base.html' %}
+    {% extends 'base.html' %}
 
-{% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <form method="post" class="buttons bg-light p-4 rounded">
-                <h3 class="text-center mb-4">Enter The Chat Room</h3>
-                <div class="mb-3">
-                    <label for="name" class="form-label">Name:</label>
-                    <input
-                            type="text"
-                            class="form-control"
-                            id="name"
-                            name="name"
-                            placeholder="Pick a name"
-                            value="{{name}}"
-                            required
-                    />
+    {% block content %}
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <form method="post" class="buttons bg-light p-4 rounded">
+                    <h3 class="text-center mb-4">Enter The Chat Room</h3>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name:</label>
+                        <input
+                                type="text"
+                                class="form-control"
+                                id="name"
+                                name="name"
+                                placeholder="Pick a name"
+                                value="{{name}}"
+                                required
+                        />
+                    </div>
+                    <div class="mb-3">
+        <label for="code" class="form-label">Room Code:</label>
+                    <div class="input-group">
+                        <input
+                                type="text"
+                                class="form-control"
+                                id="code"
+                                name="code"
+                                placeholder="Room Code"
+                                value="{{code}}"
+                                {% if request.form.get('join') %} required {% endif %}
+                        />
+                        <button type="submit" name="join" class="btn btn-primary">Join</button>
+                    </div>
                 </div>
-                <div class="mb-3">
-    <label for="code" class="form-label">Room Code:</label>
-                <div class="input-group">
-                    <input
-                            type="text"
-                            class="form-control"
-                            id="code"
-                            name="code"
-                            placeholder="Room Code"
-                            value="{{code}}"
-                            {% if request.form.get('join') %} required {% endif %}
-                    />
-                    <button type="submit" name="join" class="btn btn-primary">Join</button>
-                </div>
+                    <div class="mb-3 text-center">
+                        <button type="submit" name="create" class="btn btn-success">Create a Room</button>
+                    </div>
+                    {% if error %}
+                    <div class="alert alert-danger" role="alert">
+                        {{error}}
+                    </div>
+                    {% endif %}
+                </form>
             </div>
-                <div class="mb-3 text-center">
-                    <button type="submit" name="create" class="btn btn-success">Create a Room</button>
-                </div>
-                {% if error %}
-                <div class="alert alert-danger" role="alert">
-                    {{error}}
-                </div>
-                {% endif %}
-            </form>
         </div>
     </div>
-</div>
-{% endblock %}
+    {% endblock %}
