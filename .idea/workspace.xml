@@ -48,6 +48,14 @@
     ]
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\perepis" />
+      <recent name="D:\perepis\templates" />
+      <recent name="D:\perepis\templates\static" />
+      <recent name="D:\perepis\docs" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="perepis" />
