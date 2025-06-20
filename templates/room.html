@@ -1,52 +1,262 @@
-{% extends 'base.html' %} {% block content %}
-<div class="message-box">
-    <h2>Chat Room: {{ code }}</h2>
-    <div class="messages" id="messages"></div>
-    <div class="inputs">
-        <input
-                type="text"
-                style="height: 30px;"
-                placeholder="Message"
-                name="message"
-                id="message"/>
-        <button type="button" name="send" id="send-btn" onClick="sendMessage()">
-            Send
-        </button>
-    </div>
+{% extends "base.html" %}
+{% block title %}Комната {{ code }}{% endblock %}
+
+{% block body %}
+<h2>Комната: {{ code }}</h2>
+<p>Привет, <span id="my-name">{{ name }}</span>!</p>
+
+<div class="mb-2">
+  <button id="change-name-btn" class="btn btn-secondary btn-sm">Изменить имя</button>
+  <button id="clear-chat-btn" class="btn btn-warning btn-sm">Очистить чат</button>
+  <button id="shake-room-btn" class="btn btn-danger btn-sm">Потрясти комнату</button>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.js"></script>
-<script type="text/javascript">
-    var socketio = io();
 
-    const messages = document.getElementById("messages");
+<div id="chat" style="height: 300px; overflow-y: auto; border: 1px solid #ccc; background: #fff; padding: 10px; border-radius: 6px;">
+</div>
 
-    const createMessage = (name, msg) => {
-        const content = `
-        <div class="text">
-            <span>
-                <strong>${name}</strong>: ${msg}
-            </span>
-            <span class="muted">
-                ${new Date().toLocaleString()}
-            </span>
-        </div>
-        `;
-        messages.innerHTML += content;
-    };
+<div id="typing-indicator" style="font-style: italic; color: gray; height: 20px;"></div>
 
-    socketio.on("message", (data) => {
-        createMessage(data.name, data.message);
-    });
+<form id="message-form" class="mt-2 d-flex gap-2">
+  <input type="text" id="message-input" class="form-control" placeholder="Введите сообщение..." autocomplete="off" />
+  <input type="file" id="image-input" accept="image/*" style="display:none;" />
+  <button type="button" id="send-image-btn" class="btn btn-info">Фото</button>
+  <button type="submit" class="btn btn-primary">Отправить</button>
+</form>
 
-    const sendMessage = () => {
-      const message = document.getElementById("message")
-      if (message.value ==  "") return;
-      socketio.emit("message", {data: message.value})
-      message.value = "";
-    };
+<!-- Change name form -->
+<div id="change-name-form" style="display:none; margin-top:10px;">
+  <input type="text" id="new-name-input" class="form-control" placeholder="Новое имя" />
+  <button id="change-name-submit" class="btn btn-success mt-2">Сменить имя</button>
+  <button id="change-name-cancel" class="btn btn-secondary mt-2">Отмена</button>
+</div>
+
+<!-- Modal for image fullscreen -->
+<div id="image-modal" class="modal" tabindex="-1" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); align-items:center; justify-content:center;">
+  <img id="modal-image" src="" style="max-width:90%; max-height:90%; border-radius:8px;"/>
+</div>
+
+<!-- Tic Tac Toe -->
+<h3 class="mt-4">Мини-игра: Крестики-нолики</h3>
+<div class="tic-tac-toe" id="tic-tac-toe-board"></div>
+<div id="tic-tac-toe-status" class="mt-2"></div>
+<button id="ttt-reset" class="btn btn-secondary mt-2">Сбросить игру</button>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const socket = io();
+
+  const roomCode = "{{ code }}";
+  let myName = "{{ name }}";
+  const chat = document.getElementById("chat");
+  const typingIndicator = document.getElementById("typing-indicator");
+  const messageInput = document.getElementById("message-input");
+  const imageInput = document.getElementById("image-input");
+  const sendImageBtn = document.getElementById("send-image-btn");
+
+  // Join room
+  socket.emit("join", { code: roomCode, name: myName });
+
+  // --- Chat handling ---
+
+  function appendMessage(data) {
+    let el = document.createElement("div");
+    if(data.type === "text") {
+      el.innerHTML = `<strong>${escapeHTML(data.name)}:</strong> ${escapeHTML(data.message)}`;
+    } else if(data.type === "image") {
+      el.innerHTML = `<strong>${escapeHTML(data.name)}:</strong> <br/><img src="/static/uploads/${data.message}" class="chat-image" />`;
+      el.querySelector("img").onclick = () => openImageModal(`/static/uploads/${data.message}`);
+    }
+    chat.appendChild(el);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  socket.on("chat_history", (msgs) => {
+    chat.innerHTML = "";
+    msgs.forEach(appendMessage);
+  });
+
+  socket.on("message", appendMessage);
+
+  socket.on("clear_chat", data => {
+    chat.innerHTML = "";
+    appendMessage({name:"System", message:`${data.name} очистил чат.`, type:"text"});
+  });
+
+  // Typing indicator
+  let typingTimeout;
+  messageInput.addEventListener("input", () => {
+    socket.emit("typing", { code: roomCode });
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+      socket.emit("stop_typing", { code: roomCode });
+    }, 1500);
+  });
+
+  socket.on("typing", data => {
+    typingIndicator.innerText = `${data.name} печатает...`;
+  });
+
+  socket.on("stop_typing", () => {
+    typingIndicator.innerText = "";
+  });
+
+  // Send message
+  document.getElementById("message-form").addEventListener("submit", e => {
+    e.preventDefault();
+    let msg = messageInput.value.trim();
+    if(msg) {
+      socket.emit("message", { code: roomCode, data: msg });
+      messageInput.value = "";
+      socket.emit("stop_typing", { code: roomCode });
+    }
+  });
+
+  // Send image
+  sendImageBtn.onclick = () => imageInput.click();
+
+  imageInput.onchange = () => {
+    if(imageInput.files.length === 0) return;
+    let file = imageInput.files[0];
+    let formData = new FormData();
+    formData.append("image", file);
+
+    fetch("/upload_image", { method: "POST", body: formData })
+      .then(res => res.json())
+      .then(data => {
+        if(data.success) {
+          socket.emit("image", { code: roomCode, filename: data.filename });
+        } else {
+          alert("Ошибка загрузки: " + data.error);
+        }
+      });
+    imageInput.value = "";
+  };
+
+  // Image modal
+  const imageModal = document.getElementById("image-modal");
+  const modalImage = document.getElementById("modal-image");
+  function openImageModal(src) {
+    modalImage.src = src;
+    imageModal.style.display = "flex";
+  }
+  imageModal.onclick = () => {
+    imageModal.style.display = "none";
+    modalImage.src = "";
+  };
+
+  // --- Change name ---
+
+  const changeNameBtn = document.getElementById("change-name-btn");
+  const changeNameForm = document.getElementById("change-name-form");
+  const newNameInput = document.getElementById("new-name-input");
+  const changeNameSubmit = document.getElementById("change-name-submit");
+  const changeNameCancel = document.getElementById("change-name-cancel");
+  const myNameSpan = document.getElementById("my-name");
+
+  changeNameBtn.onclick = () => {
+    changeNameForm.style.display = "block";
+    newNameInput.value = myName;
+  };
+  changeNameCancel.onclick = () => {
+    changeNameForm.style.display = "none";
+  };
+  changeNameSubmit.onclick = () => {
+    const newName = newNameInput.value.trim();
+    if(newName && newName !== myName) {
+      socket.emit("change_name", { code: roomCode, new_name: newName });
+    }
+    changeNameForm.style.display = "none";
+  };
+
+  socket.on("name_changed", data => {
+    if(data.old_name === myName) {
+      myName = data.new_name;
+      myNameSpan.textContent = myName;
+    }
+    appendMessage({name:"System", message:`${data.old_name} сменил имя на ${data.new_name}`, type:"text"});
+  });
+
+  // Clear chat
+  document.getElementById("clear-chat-btn").onclick = () => {
+    if(confirm("Очистить чат?")) {
+      socket.emit("clear_chat", { code: roomCode });
+    }
+  };
+
+  // Shake room
+  document.getElementById("shake-room-btn").onclick = () => {
+    socket.emit("shake_room", { code: roomCode });
+  };
+
+  socket.on("shake", data => {
+    // Простая анимация тряски чата
+    chat.style.transition = "transform 0.1s";
+    chat.style.transform = "translateX(10px)";
+    setTimeout(() => {
+      chat.style.transform = "translateX(-10px)";
+    }, 100);
+    setTimeout(() => {
+      chat.style.transform = "translateX(0)";
+    }, 200);
+    appendMessage({name:"System", message:`${data.name} потряс комнату!`, type:"text"});
+  });
+
+  // Escape HTML to prevent XSS
+  function escapeHTML(text) {
+    let div = document.createElement("div");
+    div.innerText = text;
+    return div.innerHTML;
+  }
+
+  // --- TIC-TAC-TOE ---
+
+  const tttBoard = document.getElementById("tic-tac-toe-board");
+  const tttStatus = document.getElementById("tic-tac-toe-status");
+  const tttResetBtn = document.getElementById("ttt-reset");
+
+  // Create buttons
+  for(let i=0; i<9; i++) {
+    let btn = document.createElement("button");
+    btn.dataset.pos = i;
+    btn.onclick = () => makeMove(i);
+    tttBoard.appendChild(btn);
+  }
+
+  let gameState = null;
+
+  socket.emit("tic_tac_toe_join", { code: roomCode });
+
+  socket.on("tic_tac_toe_update", (game) => {
+    gameState = game;
+    updateBoard();
+  });
+
+  tttResetBtn.onclick = () => {
+    socket.emit("tic_tac_toe_reset", { code: roomCode });
+  };
+
+  function updateBoard() {
+    for(let i=0; i<9; i++) {
+      let btn = tttBoard.children[i];
+      btn.textContent = gameState.board[i];
+      btn.disabled = !!gameState.board[i] || gameState.winner;
+    }
+    if(gameState.winner === "Draw") {
+      tttStatus.textContent = "Ничья!";
+    } else if(gameState.winner) {
+      tttStatus.textContent = `Победил: ${gameState.winner}`;
+    } else {
+      tttStatus.textContent = `Ход: ${gameState.turn}`;
+    }
+  }
+
+  function makeMove(pos) {
+    if(!gameState || gameState.winner) return;
+    socket.emit("tic_tac_toe_move", { code: roomCode, pos: pos });
+  }
+
+  // --- End ---
 </script>
-{% for msg in messages %}
-<script type="text/javascript">
-    createMessage("{{msg.name}}", "{{msg.message}}");
-</script>
-{% endfor %} {% endblock %}
+{% endblock %}
